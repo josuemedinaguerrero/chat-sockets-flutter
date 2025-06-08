@@ -9,15 +9,16 @@ class ChatPage extends StatefulWidget {
 }
 
 class _ChatPageState extends State<ChatPage> {
-  final List<ChatMessage> _messages = [
-    ChatMessage(texto: 'Hola Mundo', uid: '123'),
-    ChatMessage(texto: 'Hola Mundo', uid: '123'),
-    ChatMessage(texto: 'Hola Mund dsf dsfdsf dsfdsf s fidsbfi bdifbdsif iudsb fuibdsui bfuidsb ufi iufbdsuib fiduo', uid: '123'),
-    ChatMessage(texto: 'Hola Mundo', uid: '123'),
-    ChatMessage(texto: 'Test Mundo', uid: '456'),
-    ChatMessage(texto: 'Test Mundo', uid: '456'),
-    ChatMessage(texto: 'Test Mundo', uid: '456'),
-  ];
+  final List<ChatMessage> _messages = [];
+
+  @override
+  void dispose() {
+    for (var message in _messages) {
+      message.animationController.dispose();
+    }
+
+    super.dispose();
+  }
 
   void insertMessage(ChatMessage message) {
     setState(() {
@@ -70,14 +71,20 @@ class _InputChat extends StatefulWidget {
   State<_InputChat> createState() => _InputChatState();
 }
 
-class _InputChatState extends State<_InputChat> {
+class _InputChatState extends State<_InputChat> with TickerProviderStateMixin {
   final TextEditingController _textController = TextEditingController();
   bool disabledButton = true;
 
   void _handleSubmit(String texto) {
     _textController.clear();
-    final newMessage = ChatMessage(texto: texto, uid: '123');
+    final newMessage = ChatMessage(
+      texto: texto,
+      uid: '123',
+      animationController: AnimationController(vsync: this, duration: Duration(milliseconds: 400)),
+    );
+
     widget.insertMessage(newMessage);
+    newMessage.animationController.forward();
   }
 
   @override
