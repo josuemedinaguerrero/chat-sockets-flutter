@@ -8,6 +8,6 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(title: 'Material App', debugShowCheckedModeBanner: false, initialRoute: 'login', routes: appRoutes);
+    return MaterialApp(title: 'Material App', debugShowCheckedModeBanner: false, initialRoute: 'chat', routes: appRoutes);
   }
 }
