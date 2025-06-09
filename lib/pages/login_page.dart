@@ -1,7 +1,9 @@
+import 'package:chat_sockets/services/auth_service.dart';
 import 'package:chat_sockets/widgets/custom_input.dart';
 import 'package:chat_sockets/widgets/labels.dart';
 import 'package:chat_sockets/widgets/logo.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class LoginPage extends StatelessWidget {
   const LoginPage({super.key});
@@ -45,6 +47,8 @@ class _FormState extends State<Form> {
 
   @override
   Widget build(BuildContext context) {
+    final authService = Provider.of<AuthService>(context);
+
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 50),
       child: Column(
@@ -61,11 +65,14 @@ class _FormState extends State<Form> {
           SizedBox(
             width: double.infinity,
             child: FilledButton(
-              onPressed: () {
-                print('PASSWORD: ${passController.text}');
-                print('EMAIL: ${emailController.text}');
-              },
-              child: Text('HOLA MUNDO'),
+              onPressed:
+                  authService.autenticando
+                      ? null
+                      : () {
+                        FocusScope.of(context).unfocus();
+                        authService.login(emailController.text.trim(), passController.text.trim());
+                      },
+              child: Text('Iniciar sesión'),
             ),
           ),
         ],
