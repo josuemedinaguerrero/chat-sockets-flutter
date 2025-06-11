@@ -1,3 +1,4 @@
+import 'package:chat_sockets/helpers/mostrar_alerta.dart';
 import 'package:chat_sockets/services/auth_service.dart';
 import 'package:chat_sockets/widgets/custom_input.dart';
 import 'package:chat_sockets/widgets/labels.dart';
@@ -68,9 +69,17 @@ class _FormState extends State<Form> {
               onPressed:
                   authService.autenticando
                       ? null
-                      : () {
+                      : () async {
                         FocusScope.of(context).unfocus();
-                        authService.login(emailController.text.trim(), passController.text.trim());
+                        final loginOk = await authService.login(emailController.text.trim(), passController.text.trim());
+                        if (!context.mounted) return;
+
+                        if (loginOk) {
+                          Navigator.pushReplacementNamed(context, 'usuarios');
+                          return;
+                        }
+
+                        mostrarAlerta(context, 'Login incorrecto', 'Revise sus credenciales');
                       },
               child: Text('Iniciar sesión'),
             ),

@@ -1,7 +1,10 @@
+import 'package:chat_sockets/helpers/mostrar_alerta.dart';
+import 'package:chat_sockets/services/auth_service.dart';
 import 'package:chat_sockets/widgets/custom_input.dart';
 import 'package:chat_sockets/widgets/labels.dart';
 import 'package:chat_sockets/widgets/logo.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class RegisterPage extends StatelessWidget {
   const RegisterPage({super.key});
@@ -46,6 +49,8 @@ class _FormState extends State<Form> {
 
   @override
   Widget build(BuildContext context) {
+    final authService = Provider.of<AuthService>(context);
+
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 50),
       child: Column(
@@ -64,11 +69,27 @@ class _FormState extends State<Form> {
           SizedBox(
             width: double.infinity,
             child: FilledButton(
-              onPressed: () {
-                print('PASSWORD: ${passController.text}');
-                print('EMAIL: ${emailController.text}');
-              },
-              child: Text('HOLA MUNDO'),
+              onPressed:
+                  authService.autenticando
+                      ? null
+                      : () async {
+                        FocusScope.of(context).unfocus();
+                        final loginOk = await authService.register(
+                          textController.text.trim(),
+                          emailController.text.trim(),
+                          passController.text.trim(),
+                        );
+
+                        if (!context.mounted) return;
+
+                        if (loginOk) {
+                          Navigator.pushReplacementNamed(context, 'usuarios');
+                          return;
+                        }
+
+                        mostrarAlerta(context, 'Registro incorrecto', 'Revise sus datos');
+                      },
+              child: Text('Registrarse'),
             ),
           ),
         ],

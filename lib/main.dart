@@ -12,7 +12,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [ChangeNotifierProvider(create: (context) => AuthService())],
-      child: MaterialApp(title: 'Material App', debugShowCheckedModeBanner: false, initialRoute: 'login', routes: appRoutes),
+      child: MaterialApp(title: 'Material App', debugShowCheckedModeBanner: false, initialRoute: 'loading', routes: appRoutes),
     );
   }
 }
