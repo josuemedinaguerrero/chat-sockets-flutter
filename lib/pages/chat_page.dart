@@ -1,5 +1,9 @@
+import 'package:chat_sockets/services/auth_service.dart';
+import 'package:chat_sockets/services/chat_service.dart';
+import 'package:chat_sockets/services/socket_service.dart';
 import 'package:chat_sockets/widgets/chat_message.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class ChatPage extends StatefulWidget {
   const ChatPage({super.key});
@@ -8,14 +12,37 @@ class ChatPage extends StatefulWidget {
   State<ChatPage> createState() => _ChatPageState();
 }
 
-class _ChatPageState extends State<ChatPage> {
+class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
   final List<ChatMessage> _messages = [];
+  late SocketService socketService;
+
+  @override
+  void initState() {
+    super.initState();
+
+    final socketService = Provider.of<SocketService>(context, listen: false);
+    socketService.socket.on('mensaje-personal', (data) {
+      ChatMessage newMessage = ChatMessage(
+        texto: data['mensaje'],
+        uid: data['de'],
+        animationController: AnimationController(vsync: this, duration: Duration(milliseconds: 400)),
+      );
+
+      setState(() {
+        _messages.insert(0, newMessage);
+      });
+
+      newMessage.animationController.forward();
+    });
+  }
 
   @override
   void dispose() {
     for (var message in _messages) {
       message.animationController.dispose();
     }
+
+    socketService.socket.off('mensaje-personal');
 
     super.dispose();
   }
@@ -28,14 +55,20 @@ class _ChatPageState extends State<ChatPage> {
 
   @override
   Widget build(BuildContext context) {
+    final chatService = Provider.of<ChatService>(context);
+
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
         title: Column(
           children: [
-            CircleAvatar(backgroundColor: Colors.blue[100], maxRadius: 14, child: Text('Te', style: TextStyle(fontSize: 12))),
+            CircleAvatar(
+              backgroundColor: Colors.blue[100],
+              maxRadius: 14,
+              child: Text(chatService.usuarioPara!.nombre.substring(0, 2), style: TextStyle(fontSize: 12)),
+            ),
             SizedBox(height: 3),
-            Text('Melissa Flores', style: TextStyle(color: Colors.black87, fontSize: 12)),
+            Text(chatService.usuarioPara!.nombre, style: TextStyle(color: Colors.black87, fontSize: 12)),
           ],
         ),
       ),
@@ -76,7 +109,14 @@ class _InputChatState extends State<_InputChat> with TickerProviderStateMixin {
   bool disabledButton = true;
 
   void _handleSubmit(String texto) {
+    if (texto.isEmpty) return;
+
+    final chatService = Provider.of<ChatService>(context, listen: false);
+    final socketService = Provider.of<SocketService>(context, listen: false);
+    final authService = Provider.of<AuthService>(context, listen: false);
+
     _textController.clear();
+
     final newMessage = ChatMessage(
       texto: texto,
       uid: '123',
@@ -85,6 +125,12 @@ class _InputChatState extends State<_InputChat> with TickerProviderStateMixin {
 
     widget.insertMessage(newMessage);
     newMessage.animationController.forward();
+
+    socketService.socket.emit('mensaje-personal', {
+      'de': authService.usuario?.uid,
+      'para': chatService.usuarioPara?.uid,
+      'mensaje': texto,
+    });
   }
 
   @override

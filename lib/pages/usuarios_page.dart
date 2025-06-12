@@ -1,5 +1,6 @@
 import 'package:chat_sockets/models/usuario.dart';
 import 'package:chat_sockets/services/auth_service.dart';
+import 'package:chat_sockets/services/chat_service.dart';
 import 'package:chat_sockets/services/socket_service.dart';
 import 'package:chat_sockets/services/usuarios_service.dart';
 import 'package:flutter/material.dart';
@@ -91,6 +92,11 @@ class _UserTile extends StatelessWidget {
           borderRadius: BorderRadius.circular(20),
         ),
       ),
+      onTap: () {
+        final chatService = Provider.of<ChatService>(context, listen: false);
+        chatService.usuarioPara = usuario;
+        Navigator.pushNamed(context, 'chat');
+      },
     );
   }
 }
