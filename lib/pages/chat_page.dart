@@ -1,3 +1,4 @@
+import 'package:chat_sockets/models/mensajes_response.dart';
 import 'package:chat_sockets/services/auth_service.dart';
 import 'package:chat_sockets/services/chat_service.dart';
 import 'package:chat_sockets/services/socket_service.dart';
@@ -20,20 +21,12 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
   void initState() {
     super.initState();
 
-    final socketService = Provider.of<SocketService>(context, listen: false);
-    socketService.socket.on('mensaje-personal', (data) {
-      ChatMessage newMessage = ChatMessage(
-        texto: data['mensaje'],
-        uid: data['de'],
-        animationController: AnimationController(vsync: this, duration: Duration(milliseconds: 400)),
-      );
+    socketService = Provider.of<SocketService>(context, listen: false);
+    socketService.socket.on('mensaje-personal', _escuchaMensajes);
 
-      setState(() {
-        _messages.insert(0, newMessage);
-      });
+    final chatService = Provider.of<ChatService>(context, listen: false);
 
-      newMessage.animationController.forward();
-    });
+    _cargarHistorial(chatService.usuarioPara!.uid);
   }
 
   @override
@@ -50,6 +43,38 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
   void insertMessage(ChatMessage message) {
     setState(() {
       _messages.insert(0, message);
+    });
+  }
+
+  dynamic _escuchaMensajes(dynamic payload) {
+    ChatMessage newMessage = ChatMessage(
+      texto: payload['mensaje'],
+      uid: payload['de'],
+      animationController: AnimationController(vsync: this, duration: Duration(milliseconds: 400)),
+    );
+
+    setState(() {
+      _messages.insert(0, newMessage);
+    });
+
+    newMessage.animationController.forward();
+  }
+
+  void _cargarHistorial(String usuarioID) async {
+    final chatService = Provider.of<ChatService>(context, listen: false);
+
+    List<Mensaje> chat = await chatService.getChat(usuarioID);
+
+    final history = chat.map(
+      (x) => ChatMessage(
+        texto: x.mensaje,
+        uid: x.de,
+        animationController: AnimationController(vsync: this, duration: Duration(milliseconds: 0))..forward(),
+      ),
+    );
+
+    setState(() {
+      _messages.insertAll(0, history);
     });
   }
 
@@ -119,7 +144,7 @@ class _InputChatState extends State<_InputChat> with TickerProviderStateMixin {
 
     final newMessage = ChatMessage(
       texto: texto,
-      uid: '123',
+      uid: authService.usuario!.uid,
       animationController: AnimationController(vsync: this, duration: Duration(milliseconds: 400)),
     );
 
