@@ -1,6 +1,7 @@
 import 'package:chat_sockets/models/usuario.dart';
 import 'package:chat_sockets/services/auth_service.dart';
 import 'package:chat_sockets/services/socket_service.dart';
+import 'package:chat_sockets/services/usuarios_service.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -12,15 +13,23 @@ class UsuariosPage extends StatefulWidget {
 }
 
 class _UsuariosPageState extends State<UsuariosPage> {
-  final List<Usuario> usuarios = [
-    Usuario(online: false, email: 'test1@google.com', nombre: 'Maria', uid: '1'),
-    Usuario(online: true, email: 'test2@google.com', nombre: 'Eduard', uid: '2'),
-    Usuario(online: true, email: 'test3@google.com', nombre: 'Nel', uid: '3'),
-    Usuario(online: true, email: 'test4@google.com', nombre: 'Alta', uid: '4'),
-  ];
+  final usuariosService = UsuariosService();
+  List<Usuario> usuarios = [];
+
+  Future<void> _cargarUsuarios() async {
+    usuarios = await usuariosService.getUsuarios();
+    setState(() {});
+  }
 
   Future<void> onRefresh() async {
     await Future.delayed(Duration(seconds: 2));
+    _cargarUsuarios();
+  }
+
+  @override
+  void initState() {
+    _cargarUsuarios();
+    super.initState();
   }
 
   @override
@@ -40,7 +49,15 @@ class _UsuariosPageState extends State<UsuariosPage> {
           },
           icon: Icon(Icons.exit_to_app, color: Colors.black87),
         ),
-        actions: [Container(margin: EdgeInsets.only(right: 10), child: Icon(Icons.check_circle, color: Colors.blue[400]))],
+        actions: [
+          Container(
+            margin: EdgeInsets.only(right: 10),
+            child:
+                socketService.serverStatus == ServerStatus.online
+                    ? Icon(Icons.check_circle, color: Colors.blue[400])
+                    : Icon(Icons.online_prediction_outlined, color: Colors.red),
+          ),
+        ],
       ),
       body: RefreshIndicator(
         onRefresh: onRefresh,
