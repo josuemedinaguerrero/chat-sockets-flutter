@@ -1,5 +1,6 @@
 import 'package:chat_sockets/helpers/mostrar_alerta.dart';
 import 'package:chat_sockets/services/auth_service.dart';
+import 'package:chat_sockets/services/socket_service.dart';
 import 'package:chat_sockets/widgets/custom_input.dart';
 import 'package:chat_sockets/widgets/labels.dart';
 import 'package:chat_sockets/widgets/logo.dart';
@@ -83,6 +84,9 @@ class _FormState extends State<Form> {
                         if (!context.mounted) return;
 
                         if (loginOk) {
+                          final socketService = Provider.of<SocketService>(context, listen: false);
+                          socketService.connect();
+
                           Navigator.pushReplacementNamed(context, 'usuarios');
                           return;
                         }
